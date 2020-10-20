@@ -77,7 +77,7 @@ struct capability_info procbased[21] =
  */
 struct capability_info secondary_procbased[27] =
 {
-        { 0, "Virtualize APIC accesses" }
+        { 0, "Virtualize APIC accesses" },
         { 1, "Enable EPT" },
         { 2, "Descriptor-table exiting" },
         { 3, "Enable RDTSCP" },
