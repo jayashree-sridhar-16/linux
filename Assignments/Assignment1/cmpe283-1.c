@@ -14,6 +14,9 @@
 #define IA32_VMX_PINBASED_CTLS	0x481
 #define IA32_VMX_PROCBASED_CTLS 0x482
 #define IA32_VMX_ENTRY_CTLS 0x484
+#define IA32_VMX_PROCBASED_CTLS2 0x48B
+#define IA32_VMX_EXIT_CTLS 0x483
+
 
 /*
  * struct caapability_info
@@ -69,6 +72,62 @@ struct capability_info procbased[21] =
 	{ 31, "Activate Secondary Controls" }
 };
 
+/*
+ * Secondary Processor based capabilities
+ * See SDM volume 3, section 24.6.2
+ */
+struct capability_info secondary_procbased[27] =
+{
+        { 0, "Virtualize APIC accesses" },
+        { 1, "Enable EPT" },
+        { 2, "Descriptor-table exiting" },
+        { 3, "Enable RDTSCP" },
+        { 4, "Virtualize x2APIC mode" },
+        { 5, "Enable VPID" },
+        { 6, "WBINVD exiting" },
+        { 7, "Unrestricted guest" },
+        { 8, "APIC-register virtualization" },
+        { 9, "Virtual-interrupt delivery" },
+        { 10, "PAUSE-loop exiting" },
+        { 11, "RDRAND exiting" },
+        { 12, "Enable INVPCID" },
+        { 13, "Enable VM functions" },
+        { 14, "VMCS shadowing" },
+        { 15, "Enable ENCLS exiting" },
+        { 16, "RDSEED exiting" },
+        { 17, "Enable PML" },
+        { 18, "EPT-violation #VE" },
+        { 19, "Conceal VMX from PT" },
+        { 20, "Enable XSAVES/XRSTORS" },
+        { 22, "Mode-based execute control for EPT" },
+        { 23, "Sub-page write permissions for EPT" },
+        { 24, "Sub-page write permissions for EPT" },
+        { 25, "Use TSC scaling" },
+        { 26, "Use TSC scaling" },
+        { 28, "Enable user wait and pause" }
+};
+
+/*
+ * VM Exit control capabilities
+ * See SDM volume 3, section 24.7
+ */
+struct capability_info vmx_exit[14] = 
+{
+	{ 2, "Save debug controls" },
+	{ 9, "Host address-space size" },
+	{ 12, "Load IA32_PERF_GLOBAL_CTRL" },
+	{ 15, "Acknowledge interrupt on exit" },
+	{ 18, "Save IA32_PAT" },
+	{ 19, "Load IA32_PAT" },
+	{ 20, "Save IA32_EFER" },
+	{ 21, "Load IA32_EFER" },
+	{ 22, "Save VMXpreemption timer value" },
+	{ 23, "Clear IA32_BNDCFGS" },
+	{ 24, "Conceal VMX from PT" },
+	{ 25, "Clear IA32_RTIT_CTL" },
+	{ 28, "Clear IA32_RTIT_CTL"},
+	{ 29, "Load CET state"}
+};
 
 /*
  * VM Entry control capabilities
@@ -138,11 +197,23 @@ detect_vmx_features(void)
 		(uint64_t)(lo | (uint64_t)hi << 32));
 	report_capability(pinbased, 5, lo, hi);
 
-	/* Processor Based controls */
+	/* Primary Processor Based controls */
 	rdmsr(IA32_VMX_PROCBASED_CTLS, lo, hi);
-	pr_info("Processor based Controls MSR: 0x%llx\n",
+	pr_info("Primary Processor based Controls MSR: 0x%llx\n",
 		(uint64_t)(lo | (uint64_t)hi << 32));
 	report_capability(procbased, 21, lo, hi);
+
+	/* Secondary Processor Based controls */
+	rdmsr(IA32_VMX_PROCBASED_CTLS2, lo, hi);
+	pr_info("Secondary Processor based Controls MSR: 0x%llx\n",
+		(uint64_t)(lo | (uint64_t)hi << 32));
+	report_capability(procbased, 27, lo, hi);
+
+	/* VMX Exit controls */
+	rdmsr(IA32_VMX_EXIT_CTLS, lo, hi);
+	pr_info("VM Exit Controls MSR: 0x%llx\n",
+		(uint64_t)(lo | (uint64_t)hi << 32));
+	report_capability(procbased, 14, lo, hi);
 
 	/* VMX Entry controls */
 	rdmsr(IA32_VMX_ENTRY_CTLS, lo, hi);
