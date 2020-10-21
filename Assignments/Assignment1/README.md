@@ -5,7 +5,7 @@
 * **Jayashree Sridhar (014608581)**
 * **Praneetha Sripada (014353664)**
 
-### Q1 - Contribution by each memeber
+### Q1 - Contribution by each member
 * **Jayashree Sridhar:** 
 1. Created a Ubuntu based linux VM using VMWare Fusion. Used the scenario 1 setup mentioned in the assignment instructions video.
 2. Used Intel SDM Vol. 3, section 24.6.2 for implementating the part of code that displays primary processor based capabilities supported by CPU.
@@ -24,7 +24,7 @@
 - Followed Linux Easy Install steps as mentioned in https://docs.vmware.com/en/VMware-Fusion/12/com.vmware.fusion.using.doc/GUID-E9883D0F-875C-48C6-8EA4-FCEFB5254625.html
 - Configured VM with 4 CPUs and 200GB memory.
 * Enabled nested virtualization capability for VM.
-* Started the VM.
+* Started the VM and logged into the VM.
 * Executed command "*cat /proc/cpuinfo | more*" and observed that the flags displayed had **vmx**, to confirm the system was setup right and nested virtualization capability was enabled on system.
 * Cloned git repo on vm.
 * Developed the code for *processor based controls, entry and exit controls*, following steps outlined for *pin based control*.
