@@ -1,6 +1,7 @@
 # CMPE283 Assignment 1
 
 ## Team Members
+
 * **Jayashree Sridhar (014608581)**
 * **Praneetha Sripada (014353664)**
 
@@ -15,7 +16,6 @@
 2. Used Intel SDM Vol. 3, section 24.6.2 for implementating the part of code that displays secondary processor based capabilities supported by CPU.
 3. Used Intel SDM Vol. 3, section 24.7 for implementating the part of code that displays VMX exit capabilities supported by CPU.
 
-  
   
 
 ### Q2 - Steps taken for assignment
@@ -35,7 +35,6 @@
   * Observed that the output did not have any address beginning with *000* **and**.
   * None of the bits had "*Can set & Can clear*" simultaneously set to **no**.
 * As this is the expected behavior, this confirms that our output is accurate.
-
 
 
 

@@ -17,8 +17,9 @@
 #define IA32_VMX_PROCBASED_CTLS2 0x48B
 #define IA32_VMX_EXIT_CTLS 0x483
 
+
 /*
- * struct capability_info
+ * struct caapability_info
  *
  * Represents a single capability (bit number and description).
  * Used by report_capability to output VMX capabilities.
