@@ -26,7 +26,7 @@
 * Enabled nested virtualization capability for VM.
 * Started the VM and logged into the VM.
 * Executed command "*cat /proc/cpuinfo | more*" and observed that the flags displayed had **vmx**, to confirm the system was setup right and nested virtualization capability was enabled on system.
-* Cloned git repo on vm.
+* Cloned this git repository on vm.
 * Developed the code for *processor based controls, entry and exit controls*, following steps outlined for *pin based control*.
 * Installed gcc and make packages on VM.
 * Used "*make*" command to build the kernel module.
@@ -36,6 +36,12 @@
   * None of the bits had "*Can set & Can clear*" simultaneously set to **no**.
 * As this is the expected behavior, this confirms that our output is accurate.
 
+
+**NOTE:**
+This host system specifications are as follows:
+OS: MacOS Catalina 10.15.7
+Processor: 1.4 GHz Quad-Core Intel Core i5
+RAM: 8 GB
 
 
 
