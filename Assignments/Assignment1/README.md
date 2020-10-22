@@ -37,11 +37,11 @@
 * As this is the expected behavior, this confirms that our output is accurate.
 
 
-**NOTE:**
-This host system specifications are as follows:
-OS: MacOS Catalina 10.15.7
-Processor: 1.4 GHz Quad-Core Intel Core i5
-RAM: 8 GB
+**NOTE:**  
+This host system specifications are as follows:  
+OS: MacOS Catalina 10.15.7  
+Processor: 1.4 GHz Quad-Core Intel Core i5  
+RAM: 8 GB  
 
 
 
