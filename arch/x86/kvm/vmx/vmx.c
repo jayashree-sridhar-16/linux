@@ -5981,6 +5981,9 @@ void dump_vmcs(void)
 		       vmcs_read16(VIRTUAL_PROCESSOR_ID));
 }
 
+extern atomic_t number_of_exits;
+//extern atomic_long_t number_of_cycles;
+
 /*
  * The guest has exited.  See if we can fix it or if we need userspace
  * assistance.
@@ -5990,6 +5993,15 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 	u32 exit_reason = vmx->exit_reason;
 	u32 vectoring_info = vmx->idt_vectoring_info;
+
+	/*int start_time, end_time;
+	long total_time;*/
+	int return_value;
+	
+
+	atomic_fetch_add(1, &number_of_exits);
+
+	//start_time = rdtsc();
 
 	/*
 	 * Flush logged GPAs PML buffer, this will make dirty_bitmap more
@@ -6010,8 +6022,14 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	WARN_ON_ONCE(vmx->nested.nested_run_pending);
 
 	/* If guest state is invalid, start emulating */
-	if (vmx->emulation_required)
-		return handle_invalid_guest_state(vcpu);
+	if (vmx->emulation_required) {
+		return_value = handle_invalid_guest_state(vcpu);
+		/*end_time = rdtsc();
+		total_time = end_time - start_time;
+		atomic_long_fetch_add(total_time, &number_of_cycles);*/
+
+		return return_value;
+	}
 
 	if (is_guest_mode(vcpu)) {
 		/*
@@ -6027,8 +6045,12 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 		 */
 		nested_mark_vmcs12_pages_dirty(vcpu);
 
-		if (nested_vmx_reflect_vmexit(vcpu))
+		if (nested_vmx_reflect_vmexit(vcpu)) {
+			/*end_time = rdtsc();
+			total_time = end_time - start_time;
+			atomic_long_fetch_add(total_time, &number_of_cycles);*/
 			return 1;
+		}
 	}
 
 	if (exit_reason & VMX_EXIT_REASONS_FAILED_VMENTRY) {
