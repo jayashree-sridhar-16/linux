@@ -1081,9 +1081,9 @@ EXPORT_SYMBOL_GPL(kvm_cpuid);
 * Assignment 2 code
 */
 atomic_t number_of_exits = ATOMIC_INIT(0);
-//atomic_long_t number_of_cycles = ATOMIC_INIT(0);
+atomic_long_t number_of_cycles = ATOMIC_INIT(0);
 EXPORT_SYMBOL(number_of_exits);
-//EXPORT_SYMBOL(number_of_cycles);
+EXPORT_SYMBOL(number_of_cycles);
 
 
 int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
@@ -1097,10 +1097,13 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 	ecx = kvm_rcx_read(vcpu);
 
 	if (eax == 0x4FFFFFFF) {
+		unsigned long cycles = atomic_long_read(&number_of_cycles);
+		short int high_bits = (int) cycles;
+		short int low_bits = cycles >> 32;
 
 		kvm_rax_write(vcpu, atomic_read(&number_of_exits));
-		kvm_rbx_write(vcpu, 0);
-		kvm_rcx_write(vcpu, 0);
+		kvm_rbx_write(vcpu, high_bits);
+		kvm_rcx_write(vcpu, low_bits);
 		kvm_rdx_write(vcpu, 0);
 		//return 
 	} else {
