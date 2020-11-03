@@ -1098,8 +1098,12 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 
 	if (eax == 0x4FFFFFFF) {
 		unsigned long cycles = atomic_long_read(&number_of_cycles);
-		short int high_bits = (int) cycles;
-		short int low_bits = cycles >> 32;
+		unsigned int high_bits = (int) cycles;
+		unsigned int low_bits = cycles >> 32;
+
+		printk("JAY: Cycles = %lu\n", cycles);		
+		printk("JAY: high bits= %u\n", high_bits);		
+		printk("JAY: low bits= %u\n", low_bits);
 
 		kvm_rax_write(vcpu, atomic_read(&number_of_exits));
 		kvm_rbx_write(vcpu, high_bits);
