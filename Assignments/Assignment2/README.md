@@ -12,7 +12,7 @@
 ### Praneetha Sripada
 - System setup and configuration of inner VM and outer VM.
 - Fixed issues encountered during kernel build and inner VM setup.
--Implemented code for determining number of exits and worked collaboratively for implementing other code functionality required for this assignment. 
+- Implemented code for determining number of exits and worked collaboratively for implementing other code functionality required for this assignment. 
 
 
 
