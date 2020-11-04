@@ -9,6 +9,12 @@
 - Setup outer VM and linux source code in outer VM.
 - Researched solutions for the issues in running make modules-install and fixing rebooting of Ubuntu after the kernel module was built.
 
+### Praneetha Sripada
+- System setup and configuration of inner VM and outer VM.
+- Fixed issues encountered during kernel build and inner VM setup.
+-Implemented code for determining number of exits and worked collaboratively for implementing other code functionality required for this assignment. 
+
+
 
 ## Steps
 ### Host machine specs
@@ -87,6 +93,26 @@ sudo systemctl enable --now libvirtd
 
 
 ### CPU leaf 0x4FFFFFFF code implementation:
+
+## Modifying cpuid.c:
+1. To count no.of exits and number of cycles, we are defining atomic variables **number_of_exits** and **number_of_cycles** in cpuid.c.
+2. These variables are initialized to 0.
+3. We check for the cupid leaf function and if it is leaf function i.e.,eax=0x4FFFFFFFF, we read the values as number of exits and cycles and write these values to registers **rax, rbx and rcx.** (for number of cycles, we store low 32 bits in rcx and high 32 bits in rbx respectively) while rdx is set to 0.
+
+## Modifying vmx.c:
+1. We export the variables no.of cycles and no.of exits declared in cpuid.c to vmx.c
+2. We define a function **get_RDTSC_value** to read the value of time stamp using **rdtsc** instruction and store it in msr.
+3. Whenever vm exits, we go into function **vmx_handle_exit**, where we declare variables to store the **start time, end time and total time.** At the same time,    we keep adding to no.of exits.
+4. We read the rdtsc time stamp value into **start time.**
+5. Whenever there is a return statement, we are putting it in **return_value** and calculating end time, by reading rdtsc time stamp at that point.
+6. We proceed by calculating **total time (end time-start time)** and keep adding this value to **number of cycles.**
+
+
+## Next steps:
+1. After we save our changes, we run same commands as before, to build the kernel.
+2. Once we have successfully built the kernel and rebooted our outer vm, we start up the inner vm and run our test code inside it.
+3. We observe the output file displays values for no.of exits and no.of cycles.
+
 
 
 
