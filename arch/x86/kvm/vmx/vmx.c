@@ -5982,6 +5982,11 @@ void dump_vmcs(void)
 		       vmcs_read16(VIRTUAL_PROCESSOR_ID));
 }
 
+
+/*
+ * Assignment 2 code starts here
+ */
+
 extern atomic_t number_of_exits;
 extern atomic_long_t number_of_cycles;
 
@@ -6015,6 +6020,8 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	
 
 	atomic_fetch_add(1, &number_of_exits);
+
+	printk("Assignment 2: Exit Reason = %u, Total exits = %u\n", exit_reason, atomic_read(&number_of_exits));
 
 	start_time = get_RDTSC_value();
 
@@ -6159,40 +6166,46 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 #ifdef CONFIG_RETPOLINE
 	if (exit_reason == EXIT_REASON_MSR_WRITE) {
 
+		return_value = kvm_emulate_wrmsr(vcpu);
 		end_time = get_RDTSC_value();
 		total_time = end_time - start_time;
 		atomic_long_add(total_time, &number_of_cycles);
-		return kvm_emulate_wrmsr(vcpu);
+		return return_value;
 	}
 	else if (exit_reason == EXIT_REASON_PREEMPTION_TIMER) {
+		return_value = handle_preemption_timer(vcpu);
 		end_time = get_RDTSC_value();
 		total_time = end_time - start_time;
 		atomic_long_add(total_time, &number_of_cycles);
-		return handle_preemption_timer(vcpu);
+		return return_value;
 	}
 	else if (exit_reason == EXIT_REASON_INTERRUPT_WINDOW) {
+		return_value = handle_interrupt_window(vcpu);
 		end_time = get_RDTSC_value();
 		total_time = end_time - start_time;
 		atomic_long_add(total_time, &number_of_cycles);
-		return handle_interrupt_window(vcpu);
+		return return_value;
 	}
 	else if (exit_reason == EXIT_REASON_EXTERNAL_INTERRUPT) {
+		return_value = handle_external_interrupt(vcpu);
 		end_time = get_RDTSC_value();
 		total_time = end_time - start_time;
 		atomic_long_add(total_time, &number_of_cycles);
-		return handle_external_interrupt(vcpu);
+		return return_value;
 	}
 	else if (exit_reason == EXIT_REASON_HLT) {
+		return_value = kvm_emulate_halt(vcpu);
 		end_time = get_RDTSC_value();
 		total_time = end_time - start_time;
 		atomic_long_add(total_time, &number_of_cycles);
-		return kvm_emulate_halt(vcpu);
+		return return_value;
 	}
 	else if (exit_reason == EXIT_REASON_EPT_MISCONFIG) {
+		return_value = handle_ept_misconfig(vcpu);
 		end_time = get_RDTSC_value();
 		total_time = end_time - start_time;
 		atomic_long_add(total_time, &number_of_cycles);
-		return handle_ept_misconfig(vcpu);
+		return return_value;
 	}
 #endif
 

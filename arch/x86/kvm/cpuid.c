@@ -15,6 +15,7 @@
 #include <linux/uaccess.h>
 #include <linux/sched/stat.h>
 #include <linux/atomic.h>
+//#include <stdint.h>
 
 #include <asm/processor.h>
 #include <asm/user.h>
@@ -1097,13 +1098,14 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 	ecx = kvm_rcx_read(vcpu);
 
 	if (eax == 0x4FFFFFFF) {
-		unsigned long cycles = atomic_long_read(&number_of_cycles);
-		unsigned int high_bits = (int) cycles;
-		unsigned int low_bits = cycles >> 32;
+		u32 total_exits = atomic_read(&number_of_exits);
+		u64 cycles = atomic_long_read(&number_of_cycles);
+		u32 max = 4294967295;
+		u32 high_bits = cycles >> 32;
+		u32 low_bits = cycles & max;
 
-		printk("JAY: Cycles = %lu\n", cycles);		
-		printk("JAY: high bits= %u\n", high_bits);		
-		printk("JAY: low bits= %u\n", low_bits);
+		printk("Assignment 2: Total Exits = %u\n", total_exits);
+		printk("Assignment 2: Total Cycles = %llu\n", cycles);	
 
 		kvm_rax_write(vcpu, atomic_read(&number_of_exits));
 		kvm_rbx_write(vcpu, high_bits);
