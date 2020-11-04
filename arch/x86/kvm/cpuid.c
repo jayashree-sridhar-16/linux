@@ -14,6 +14,8 @@
 #include <linux/vmalloc.h>
 #include <linux/uaccess.h>
 #include <linux/sched/stat.h>
+#include <linux/atomic.h>
+//#include <stdint.h>
 
 #include <asm/processor.h>
 #include <asm/user.h>
@@ -1023,12 +1025,15 @@ get_out_of_range_cpuid_entry(struct kvm_vcpu *vcpu, u32 *fn_ptr, u32 index)
 	return kvm_find_cpuid_entry(vcpu, basic->eax, index);
 }
 
+
+
 bool kvm_cpuid(struct kvm_vcpu *vcpu, u32 *eax, u32 *ebx,
 	       u32 *ecx, u32 *edx, bool exact_only)
 {
 	u32 orig_function = *eax, function = *eax, index = *ecx;
 	struct kvm_cpuid_entry2 *entry;
 	bool exact, used_max_basic = false;
+	
 
 	entry = kvm_find_cpuid_entry(vcpu, function, index);
 	exact = !!entry;
@@ -1072,6 +1077,16 @@ bool kvm_cpuid(struct kvm_vcpu *vcpu, u32 *eax, u32 *ebx,
 }
 EXPORT_SYMBOL_GPL(kvm_cpuid);
 
+
+/*
+* Assignment 2 code
+*/
+atomic_t number_of_exits = ATOMIC_INIT(0);
+atomic_long_t number_of_cycles = ATOMIC_INIT(0);
+EXPORT_SYMBOL(number_of_exits);
+EXPORT_SYMBOL(number_of_cycles);
+
+
 int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 {
 	u32 eax, ebx, ecx, edx;
@@ -1081,11 +1096,31 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 
 	eax = kvm_rax_read(vcpu);
 	ecx = kvm_rcx_read(vcpu);
-	kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, false);
-	kvm_rax_write(vcpu, eax);
-	kvm_rbx_write(vcpu, ebx);
-	kvm_rcx_write(vcpu, ecx);
-	kvm_rdx_write(vcpu, edx);
+
+	if (eax == 0x4FFFFFFF) {
+		u32 total_exits = atomic_read(&number_of_exits);
+		u64 cycles = atomic_long_read(&number_of_cycles);
+		u32 max = 4294967295;
+		u32 high_bits = cycles >> 32;
+		u32 low_bits = cycles & max;
+
+		printk("Assignment 2: Total Exits = %u\n", total_exits);
+		printk("Assignment 2: Total Cycles = %llu\n", cycles);	
+
+		kvm_rax_write(vcpu, atomic_read(&number_of_exits));
+		kvm_rbx_write(vcpu, high_bits);
+		kvm_rcx_write(vcpu, low_bits);
+		kvm_rdx_write(vcpu, 0);
+		//return 
+	} else {
+		
+		kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, false);
+		kvm_rax_write(vcpu, eax);
+		kvm_rbx_write(vcpu, ebx);
+		kvm_rcx_write(vcpu, ecx);
+		kvm_rdx_write(vcpu, edx);
+	}
+	
 	return kvm_skip_emulated_instruction(vcpu);
 }
 EXPORT_SYMBOL_GPL(kvm_emulate_cpuid);

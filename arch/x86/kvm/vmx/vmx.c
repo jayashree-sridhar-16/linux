@@ -13,6 +13,7 @@
  *   Yaniv Kamay  <yaniv@qumranet.com>
  */
 
+#include <linux/atomic.h>
 #include <linux/frame.h>
 #include <linux/highmem.h>
 #include <linux/hrtimer.h>
@@ -5981,6 +5982,27 @@ void dump_vmcs(void)
 		       vmcs_read16(VIRTUAL_PROCESSOR_ID));
 }
 
+
+/*
+ * Assignment 2 code starts here
+ */
+
+extern atomic_t number_of_exits;
+extern atomic_long_t number_of_cycles;
+
+static uint64_t get_RDTSC_value(void) {
+	uint64_t msr;
+
+	asm volatile ( "rdtsc\n\t"    // Returns the time in EDX:EAX.
+	        "shl $32, %%rdx\n\t"  // Shift the upper bits left.
+	        "or %%rdx, %0"        // 'Or' in the lower bits.
+	        : "=a" (msr)
+	        :
+	        : "rdx");
+
+	return msr;
+}
+
 /*
  * The guest has exited.  See if we can fix it or if we need userspace
  * assistance.
@@ -5990,6 +6012,18 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 	u32 exit_reason = vmx->exit_reason;
 	u32 vectoring_info = vmx->idt_vectoring_info;
+
+	unsigned long start_time= 0;
+	unsigned long end_time = 0;
+	unsigned long total_time = 0;
+	int return_value;
+	
+
+	atomic_fetch_add(1, &number_of_exits);
+
+	printk("Assignment 2: Exit Reason = %u, Total exits = %u\n", exit_reason, atomic_read(&number_of_exits));
+
+	start_time = get_RDTSC_value();
 
 	/*
 	 * Flush logged GPAs PML buffer, this will make dirty_bitmap more
@@ -6010,8 +6044,14 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	WARN_ON_ONCE(vmx->nested.nested_run_pending);
 
 	/* If guest state is invalid, start emulating */
-	if (vmx->emulation_required)
-		return handle_invalid_guest_state(vcpu);
+	if (vmx->emulation_required) {
+		return_value = handle_invalid_guest_state(vcpu);
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
+
+		return return_value;
+	}
 
 	if (is_guest_mode(vcpu)) {
 		/*
@@ -6027,8 +6067,12 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 		 */
 		nested_mark_vmcs12_pages_dirty(vcpu);
 
-		if (nested_vmx_reflect_vmexit(vcpu))
+		if (nested_vmx_reflect_vmexit(vcpu)) {
+			end_time = get_RDTSC_value();
+			total_time = end_time - start_time;
+			atomic_long_add(total_time, &number_of_cycles);
 			return 1;
+		}
 	}
 
 	if (exit_reason & VMX_EXIT_REASONS_FAILED_VMENTRY) {
@@ -6037,6 +6081,10 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 		vcpu->run->fail_entry.hardware_entry_failure_reason
 			= exit_reason;
 		vcpu->run->fail_entry.cpu = vcpu->arch.last_vmentry_cpu;
+
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
 		return 0;
 	}
 
@@ -6046,6 +6094,10 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 		vcpu->run->fail_entry.hardware_entry_failure_reason
 			= vmcs_read32(VM_INSTRUCTION_ERROR);
 		vcpu->run->fail_entry.cpu = vcpu->arch.last_vmentry_cpu;
+
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
 		return 0;
 	}
 
@@ -6075,6 +6127,10 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 		}
 		vcpu->run->internal.data[vcpu->run->internal.ndata++] =
 			vcpu->arch.last_vmentry_cpu;
+
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
 		return 0;
 	}
 
@@ -6097,24 +6153,60 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 		}
 	}
 
-	if (exit_fastpath != EXIT_FASTPATH_NONE)
+	if (exit_fastpath != EXIT_FASTPATH_NONE) {
+
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
 		return 1;
+	}
 
 	if (exit_reason >= kvm_vmx_max_exit_handlers)
 		goto unexpected_vmexit;
 #ifdef CONFIG_RETPOLINE
-	if (exit_reason == EXIT_REASON_MSR_WRITE)
-		return kvm_emulate_wrmsr(vcpu);
-	else if (exit_reason == EXIT_REASON_PREEMPTION_TIMER)
-		return handle_preemption_timer(vcpu);
-	else if (exit_reason == EXIT_REASON_INTERRUPT_WINDOW)
-		return handle_interrupt_window(vcpu);
-	else if (exit_reason == EXIT_REASON_EXTERNAL_INTERRUPT)
-		return handle_external_interrupt(vcpu);
-	else if (exit_reason == EXIT_REASON_HLT)
-		return kvm_emulate_halt(vcpu);
-	else if (exit_reason == EXIT_REASON_EPT_MISCONFIG)
-		return handle_ept_misconfig(vcpu);
+	if (exit_reason == EXIT_REASON_MSR_WRITE) {
+
+		return_value = kvm_emulate_wrmsr(vcpu);
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
+		return return_value;
+	}
+	else if (exit_reason == EXIT_REASON_PREEMPTION_TIMER) {
+		return_value = handle_preemption_timer(vcpu);
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
+		return return_value;
+	}
+	else if (exit_reason == EXIT_REASON_INTERRUPT_WINDOW) {
+		return_value = handle_interrupt_window(vcpu);
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
+		return return_value;
+	}
+	else if (exit_reason == EXIT_REASON_EXTERNAL_INTERRUPT) {
+		return_value = handle_external_interrupt(vcpu);
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
+		return return_value;
+	}
+	else if (exit_reason == EXIT_REASON_HLT) {
+		return_value = kvm_emulate_halt(vcpu);
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
+		return return_value;
+	}
+	else if (exit_reason == EXIT_REASON_EPT_MISCONFIG) {
+		return_value = handle_ept_misconfig(vcpu);
+		end_time = get_RDTSC_value();
+		total_time = end_time - start_time;
+		atomic_long_add(total_time, &number_of_cycles);
+		return return_value;
+	}
 #endif
 
 	exit_reason = array_index_nospec(exit_reason,
@@ -6122,7 +6214,12 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	if (!kvm_vmx_exit_handlers[exit_reason])
 		goto unexpected_vmexit;
 
-	return kvm_vmx_exit_handlers[exit_reason](vcpu);
+	return_value = kvm_vmx_exit_handlers[exit_reason](vcpu);
+	end_time = get_RDTSC_value();
+	total_time = end_time - start_time;
+	atomic_long_add(total_time, &number_of_cycles);
+
+	return return_value;
 
 unexpected_vmexit:
 	vcpu_unimpl(vcpu, "vmx: unexpected exit reason 0x%x\n", exit_reason);
@@ -6133,6 +6230,11 @@ unexpected_vmexit:
 	vcpu->run->internal.ndata = 2;
 	vcpu->run->internal.data[0] = exit_reason;
 	vcpu->run->internal.data[1] = vcpu->arch.last_vmentry_cpu;
+
+	end_time = get_RDTSC_value();
+	total_time = end_time - start_time;
+	atomic_long_add(total_time, &number_of_cycles);
+	
 	return 0;
 }
 
