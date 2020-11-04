@@ -18,6 +18,9 @@
 - Implemented code for determining number of exits and worked collaboratively for implementing other code functionality required for this assignment. 
 
 
+## Files modified in linux repository for the assignment
+- https://github.com/jayashree-sridhar-16/linux/blob/master/arch/x86/kvm/cpuid.c
+- https://github.com/jayashree-sridhar-16/linux/blob/master/arch/x86/kvm/vmx/vmx.c
 
 ## Steps
 ### Host machine specs
