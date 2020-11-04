@@ -49,7 +49,7 @@ make oldconfig
 ```
 make && make modules && make install && make modules_install
 ```
-> Issues faced in this step:
+> Issue 1:
 > In the assignment description, the last make command was wrongly given as modules-install.
 > The command used to fail with no rule to make target 'modules-install'
 > Section 2.3 in https://www.kernel.org/doc/Documentation/kbuild/modules.txt helped me figure out the correct target as modules_install
@@ -58,15 +58,35 @@ make && make modules && make install && make modules_install
 ```
 reboot
 ```
-> Issues faced during reboot: 
+> Issue 2: 
 > The VM was got stuck in initramf BusyBox with error as mentioned in https://unix.stackexchange.com/questions/589899/missing-modules-cat-proc-modules-ls-dev-and-uuid-doesnt-exist-in-busybox  
 > How it was solved:
 > - Shutdown the VM
 > - Start the VM
 > - Enter GRUB menu
 > - Choose the linux kernel version 5.4.0-52-generic (the installed version)
-> - It boots successfully finally  
-> The issue seemed to be that it was selecting another kernel version 5.9.0 while trying to boot.
+> - It boots successfully finally.    
+> For reasons unclear, after the first build and reboot, loading 5.9.0 version was not booting, but for subsequent compile, build and reboot, the kernel was able to successfully boot kernel version 5.9.0 without any intervention.
+
+
+### Inner VM Setup
+1. Downloaded the ISO image of Ubuntu 20.04.1 from https://ubuntu.com/download/desktop
+2. Download virt-manager for managing virtual machines on the outer VM. (See https://virt-manager.org/ )
+3. Download QEMU/KVM for running VMs and start. Refer https://www.tecmint.com/install-kvm-on-ubuntu/
+```
+sudo apt-get install virt-manager
+sudo apt install -y qemu qemu-kvm libvirt-daemon libvirt-clients bridge-utils virt-manager
+sudo systemctl enable --now libvirtd
+```
+4. Open virt-manager from command line or Ubuntu applications. Refer https://www.tecmint.com/install-kvm-on-ubuntu/ for steps.
+> Use the downloaded Ubuntu ISO for creating the VM
+5. Start and login into Ubuntu inner VM.
+> Issue 3:
+> - After successful launch of inner VM, it operated properly, but was crashing whenever we come out of inner VM and access host or outer VM application. It seemed to be some improper Ubuntu software installation issue. After installing the software properly, VM stopped crashing.
+> - After the crashing issue was resolved, the inner VM did not have internet connection working properly. Changing NIC setting for the inner VM from 'NAT' to Host device and restarting the inner VM after applying the changes resolved the issue. 
+
+
+### CPU leaf 0x4FFFFFFF code implementation:
 
 
 
