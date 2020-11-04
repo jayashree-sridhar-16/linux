@@ -97,27 +97,107 @@ sudo systemctl enable --now libvirtd
 
 ### CPU leaf 0x4FFFFFFF code implementation:
 
-#### Modifying cpuid.c:
-1. To count no.of exits and number of cycles, we are defining atomic variables **number_of_exits** and **number_of_cycles** in cpuid.c.
-2. These variables are initialized to 0.
-3. We check for the cupid leaf function and if it is leaf function i.e.,eax=0x4FFFFFFFF, we read the values as number of exits and cycles and write these values to registers **rax, rbx and rcx.** (for number of cycles, we store low 32 bits in rcx and high 32 bits in rbx respectively) while rdx is set to 0.
+#### Modifying arch/x86/kvm/cpuid.c:
+1. Declared and intialized atomic variables for tracking number of VM exits and number of CPU cycles spent in each VM exit. The variables are exported so that they can be modified by other files.
+```
+atomic_t number_of_exits = ATOMIC_INIT(0);
+atomic_long_t number_of_cycles = ATOMIC_INIT(0);
+EXPORT_SYMBOL(number_of_exits);
+EXPORT_SYMBOL(number_of_cycles);
+```
+2. Added a check for the cpuid leaf function eax=0x4FFFFFFFF inside *kvm_emulate_cpuid* method. On matching the condition eax=0x4FFFFFFFF, it will store **number_of_exits** value into *eax*, higher and lower bits of **number_ of_cycles** into *ebx* and *ecx* respectively, and set *edx* to 0.
 
-#### Modifying vmx.c:
-1. We export the variables no.of cycles and no.of exits declared in cpuid.c to vmx.c
-2. We define a function **get_RDTSC_value** to read the value of time stamp using **rdtsc** instruction and store it in msr.
-3. Whenever vm exits, we go into function **vmx_handle_exit**, where we declare variables to store the **start time, end time and total time.** At the same time,    we keep adding to no.of exits.
-4. We read the rdtsc time stamp value into **start time.**
-5. Whenever there is a return statement, we are putting it in **return_value** and calculating end time, by reading rdtsc time stamp at that point.
-6. We proceed by calculating **total time (end time-start time)** and keep adding this value to **number of cycles.**
+```
+if (eax == 0x4FFFFFFF) {
+		u32 total_exits = atomic_read(&number_of_exits);
+		u64 cycles = atomic_long_read(&number_of_cycles);
+		u32 max = 4294967295;
+		u32 high_bits = cycles >> 32;
+		u32 low_bits = cycles & max;
+
+		printk("Assignment 2: Total Exits = %u\n", total_exits);
+		printk("Assignment 2: Total Cycles = %llu\n", cycles);	
+
+		kvm_rax_write(vcpu, atomic_read(&number_of_exits));
+		kvm_rbx_write(vcpu, high_bits);
+		kvm_rcx_write(vcpu, low_bits);
+		kvm_rdx_write(vcpu, 0);
+	}
+```
+> printk statement will print the message to kernel logs, which we can view by running *dmesg* command in terminal
+
+#### Modifying arch/x86/kvm/vmx/vmx.c:
+1. Declare extern variables for **number_of_exits** and **number_ of_cycles** defined in cpuid.c 
+```
+extern atomic_t number_of_exits;
+extern atomic_long_t number_of_cycles;
+```
+2. Define a function for executing **rdtsc** instruction and return the current time stamp
+```
+static uint64_t get_RDTSC_value(void) {
+	uint64_t msr;
+
+	asm volatile ( "rdtsc\n\t"    // Returns the time in EDX:EAX.
+	        "shl $32, %%rdx\n\t"  // Shift the upper bits left.
+	        "or %%rdx, %0"        // 'Or' in the lower bits.
+	        : "=a" (msr)
+	        :
+	        : "rdx");
+
+	return msr;
+}
+```
+> Reference: https://dmalcolm.fedorapeople.org/gcc/2015-08-31/rst-experiment/how-to-use-inline-assembly-language-in-c-code.html#volatile
+
+3. Declare  **start_time, end_time and total_time** inside function *vmx_handle_exit* for recording time lapsed during VM exit handling.
+4. Increment **number_of_exits** every time *vmx_handle_exit* has been invoked.
+5. Calculation of time spent inside *vmx_handle_exit* is done as follows
+  - Store **start_time** at the beginning of *vmx_handle_exit* and **end_time** before return statement.
+  - Calculate the lapsed time by finding the delta between start_time and end_time
+> Whenever there is a return statement, we are putting it in **return_value** and calculating end time, by reading rdtsc time stamp at that point.
+```
+unsigned long start_time= 0;
+unsigned long end_time = 0;
+unsigned long total_time = 0;
+
+atomic_fetch_add(1, &number_of_exits); //Increment no of exits
+
+start_time = get_RDTSC_value();
+
+// VM exit handling
+
+end_time = get_RDTSC_value();
+total_time = end_time - start_time;
+atomic_long_add(total_time, &number_of_cycles);
+```
 
 
 #### Next steps:
-1. After we save our changes, we run same commands as before, to build the kernel.
+1. After we save our changes, we run same make commands as before, to build the kernel.
 2. Once we have successfully built the kernel and rebooted our outer vm, we start up the inner vm and run our test code inside it.
-3. We observe the output file displays values for no.of exits and no.of cycles.
+```
+#include <stdio.h>
+
+static inline void native_cpuid(unsigned long* eax, unsigned long* ebx, unsigned long* ecx, unsigned long* edx) {
+	asm volatile("cpuid"
+					:"=a" (*eax),"=b" (*ebx),"=c" (*ecx),"=d" (*edx)
+					: "0" (*eax)
+				);
+}
 
 
+int main(int argc, char **argv) {
+	unsigned long eax, ebc, ecx, edx;
 
+	eax=0x4FFFFFFF;
+	native_cpuid(&eax, &ebx, &ecx, &edx);
+  unsigned long total_cycles = ((( unsigned long) ebx << 32 ) | ecx); 
+	printf("Total no of exits: %lu\n", eax);
+	printf("Total no of cycles: %lu\n", total_cycles);
+
+	return 0;
+}
+```
 
 ## Questions/Answers/Observations
 
