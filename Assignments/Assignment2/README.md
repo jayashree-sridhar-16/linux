@@ -202,20 +202,21 @@ int main(int argc, char **argv) {
 ## Questions/Answers/Observations
 
 #### Comment on the frequency of exits – does the number of exits increase at a stable rate? Or are there more exits performed during certain VM operations?
-- The number of exits does not increase at a steady rate. It varies depending on the VM operations performed. 
+- The increase in number of exits varies according to operations performed inside inner VM. Opening new applications, files etc sees a sudden jump in VM exits by around 10,000 exits. Performing operations on already open files or applications, causes an increases in VM exits by around 100 exits. When no operations are perfomed inside the VM, from outer VM kernel log, we can see VM exits 32 (WRMSR), 12 (HLT) happening consistently, and occassionally VM exits 1( External interrupt) and 48 (EPT violation) was observed. 
 
 #### Approximately how many exits does a full VM boot entail?
-- The observed number of VM exits during booting of inner VM was 4119437. A printk statement was added inside vmx.c to print the exit reason number and number of exits occured, every time a VM exit occuers.
+- The number of VM exits for each bootup of inner VM seems to vary each time. We tried to monitor the number of VM exits during 3 bootups of inner VM.
+- The observed number seemed to vary between 3040004, 4119437 and 5006001. 
+- A printk statement was added inside vmx.c to print the exit reason number and number of exits occured, every time a VM exit occuers.
 
 ```
 printk("Assignment 2: Exit Reason = %u, Total exits = %u\n", exit_reason, atomic_read(&number_of_exits));
 ```
 number_of_exits is set to 0 during outer VM kernel load. It gets modified after starting a VM inside the outer VM.
-Once the inner VM has fully booted till displaying Ubuntu home screen, we execute below command in outer VM terminal and find the 4119437 number of exits have occured during inner VM boot.
+Once the inner VM has fully booted till displaying Ubuntu home screen, we execute below command in outer VM terminal and find the (for eg.) 4119437 number of exits have occured during inner VM boot.
 ```
 dmesg
 ```
-
 
 
 
