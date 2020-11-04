@@ -7,7 +7,10 @@
 ## Members contributions
 #### Jayashree Sridhar
 - Setup outer VM and linux source code in outer VM.
-- Researched solutions for the issues in running make modules-install and fixing rebooting of Ubuntu after the kernel module was built.
+- Researched solutions for the issues in 1 - 3 mentioned below in setup instructions.
+- Researched on measuring CPU cycles using RDTSC instruction.
+- Created test code in inner vm for testing the kernel code changes implemented for CPUID leaf function 0x4FFFFFFF.
+- Worked on calculating number of CPU cycles spent in VM exits.
 
 ### Praneetha Sripada
 - System setup and configuration of inner VM and outer VM.
@@ -113,6 +116,25 @@ sudo systemctl enable --now libvirtd
 2. Once we have successfully built the kernel and rebooted our outer vm, we start up the inner vm and run our test code inside it.
 3. We observe the output file displays values for no.of exits and no.of cycles.
 
+
+
+
+## Questions/Answers/Observations
+
+#### Comment on the frequency of exits – does the number of exits increase at a stable rate? Or are there more exits performed during certain VM operations?
+- The number of exits does not increase at a steady rate. It varies depending on the VM operations performed. 
+
+#### Approximately how many exits does a full VM boot entail?
+- The observed number of VM exits during booting of inner VM was 4119437. A printk statement was added inside vmx.c to print the exit reason number and number of exits occured, every time a VM exit occuers.
+
+```
+printk("Assignment 2: Exit Reason = %u, Total exits = %u\n", exit_reason, atomic_read(&number_of_exits));
+```
+number_of_exits is set to 0 during outer VM kernel load. It gets modified after starting a VM inside the outer VM.
+Once the inner VM has fully booted till displaying Ubuntu home screen, we execute below command in outer VM terminal and find the 4119437 number of exits have occured during inner VM boot.
+```
+dmesg
+```
 
 
 
