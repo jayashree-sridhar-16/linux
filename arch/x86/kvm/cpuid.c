@@ -1083,8 +1083,10 @@ EXPORT_SYMBOL_GPL(kvm_cpuid);
 */
 atomic_t number_of_exits = ATOMIC_INIT(0);
 atomic_long_t number_of_cycles = ATOMIC_INIT(0);
+atomic_t exitReasonArray[69] = {ATOMIC_INIT(0)};
 EXPORT_SYMBOL(number_of_exits);
 EXPORT_SYMBOL(number_of_cycles);
+EXPORT_SYMBOL(exitReasonArray);
 
 
 int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
@@ -1112,6 +1114,15 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 		kvm_rcx_write(vcpu, low_bits);
 		kvm_rdx_write(vcpu, 0);
 		//return 
+	} else if (eax == 0x4FFFFFFE) {
+		u32 numOfExits = atomic_read(&exitReasonArray[ecx]);
+		printk("Assignment 3: Total Exits = %u for exit reason= %u\n", numOfExits, ecx);
+		
+		kvm_rax_write(vcpu, numOfExits);
+		kvm_rbx_write(vcpu, 0);
+		kvm_rcx_write(vcpu, 0);
+		kvm_rdx_write(vcpu, 0);
+
 	} else {
 		
 		kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, false);
