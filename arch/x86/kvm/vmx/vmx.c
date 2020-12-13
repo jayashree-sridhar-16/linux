@@ -5989,6 +5989,9 @@ void dump_vmcs(void)
 
 extern atomic_t number_of_exits;
 extern atomic_long_t number_of_cycles;
+//get exit number value from user and store in exit_number
+int exit_number;
+int er;
 
 static uint64_t get_RDTSC_value(void) {
 	uint64_t msr;
@@ -6011,6 +6014,8 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 {
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 	u32 exit_reason = vmx->exit_reason;
+	//exit reason copied to er.
+	er=exit_reason;
 	u32 vectoring_info = vmx->idt_vectoring_info;
 
 	unsigned long start_time= 0;

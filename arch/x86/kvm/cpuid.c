@@ -1082,9 +1082,15 @@ EXPORT_SYMBOL_GPL(kvm_cpuid);
 * Assignment 2 code
 */
 atomic_t number_of_exits = ATOMIC_INIT(0);
-atomic_long_t number_of_cycles = ATOMIC_INIT(0);
 EXPORT_SYMBOL(number_of_exits);
-EXPORT_SYMBOL(number_of_cycles);
+//import exit_number obtained from user
+extern int exit_number;
+//extern int er;
+
+
+/*atomic_long_t number_of_cycles = ATOMIC_INIT(0);
+EXPORT_SYMBOL(number_of_exits);
+EXPORT_SYMBOL(number_of_cycles);*/
 
 
 int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
@@ -1094,23 +1100,37 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 	if (cpuid_fault_enabled(vcpu) && !kvm_require_cpl(vcpu, 0))
 		return 1;
 
-	eax = kvm_rax_read(vcpu);
-	ecx = kvm_rcx_read(vcpu);
+	//eax = kvm_rax_read(vcpu);
+	ecx=kvm_rcx_read(vcpu);
 
-	if (eax == 0x4FFFFFFF) {
+	if (eax == 0x4FFFFFFE  && exit_reason==er) {
 		u32 total_exits = atomic_read(&number_of_exits);
-		u64 cycles = atomic_long_read(&number_of_cycles);
+		u32 exit_reason=kvm_rcx_read(exit_reason);
+		kvm_rax_write(vcpu, total_exits);
+		kvm_rcx_write(vcpu, exit_reason);
+		printk("Assignment 3: Total Exits = %u\n", total_exits);
+		printk("Assignment 3: Exit Reason = %llu\n", exit_reason);
+		}
+		else if (eax == 0x4FFFFFFE  && exit_reason!=er){
+		kvm_rax_write(vcpu, 0);
+		kvm_rbx_write(vcpu, 0);
+		kvm_rcx_write(vcpu, 0);
+		kvm_rdx_write(vcpu, 0);
+		}
+		
+		
+		
+		/*u64 cycles = atomic_long_read(&number_of_cycles);
 		u32 max = 4294967295;
 		u32 high_bits = cycles >> 32;
-		u32 low_bits = cycles & max;
+		u32 low_bits = cycles & max;*/
 
-		printk("Assignment 2: Total Exits = %u\n", total_exits);
-		printk("Assignment 2: Total Cycles = %llu\n", cycles);	
+			
 
-		kvm_rax_write(vcpu, atomic_read(&number_of_exits));
+		/*kvm_rax_write(vcpu, atomic_read(&number_of_exits));
 		kvm_rbx_write(vcpu, high_bits);
 		kvm_rcx_write(vcpu, low_bits);
-		kvm_rdx_write(vcpu, 0);
+		kvm_rdx_write(vcpu, 0);*/
 		//return 
 	} else {
 		
