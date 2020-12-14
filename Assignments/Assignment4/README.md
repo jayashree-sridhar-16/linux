@@ -41,6 +41,13 @@ insmod /lib/modules/5.9.0+/kernel/arch/x86/kvm/kvm-intel.ko ept=0
 ![1](./assgn04_outputs/1.1.jpeg) 
 ![2](./assgn04_outputs/1.2.jpeg) 
 
+- Without ept
+
+![1](./assgn04_outputs/2.1.jpeg) 
+![2](./assgn04_outputs/2.2.jpeg) 
+![3](./assgn04_outputs/2.3.jpeg) 
+
+
 
 ### What did you learn from the count of exits? Was the count what you expected? If not, why not?
 - Nested paging mode (with ept) involves much less number of exits to handle paging operations as compared to shadow paging mode (without ept).
