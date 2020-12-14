@@ -62,6 +62,6 @@ if (eax == 0x4FFFFFFE) { //Assignment 3
 ```
 3. Check if ecx value matches any exit reasons not defined in SDM. If yes, we write **value 0 to registers eax, ebx, ecx and value 0xFFFFFFFF** to edx.
 4. Else check if ecx value matches any exit reasons not enabled in kvm. If yes, we write **value 0 to all the registers eax, ebx, ecx and edx**
-5. Else we identify ecx value corresponds to exits defined in SDM and enabled in kvm. Then we write the **value corresponding to number of exits for exit reason in ecx to eax and value of 0 to registers ebx,ecx and edx.***
+5. Else we identify ecx value corresponds to exits defined in SDM and enabled in kvm. Then we write the **value corresponding to number of exits for exit reason in ecx to eax and value of 0 to registers ebx,ecx and edx.**
 
 #### Modifying arch/x86/kvm/vmx/vmx.c:
