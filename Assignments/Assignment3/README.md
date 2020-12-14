@@ -203,6 +203,8 @@ We tested the count of VM exits for 3 scenarios - after inner VM boot up, openin
 - There are some exits which remain constant after boot up like exception based, CR and DR accesses.
 - There is a spike in counts noticed in 3rd scenario for exit reason 32 and 49. 
 - Hence the frequency of exits varies for different exit reasons and according to different operations performed in inner VM.
+- A full VM boot entails total VM exit counts between 3040004, 4119437 and 5006001 as observed in assignment 2.
+
 
 
 
