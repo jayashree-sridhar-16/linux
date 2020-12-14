@@ -7,10 +7,18 @@
 
 ### Q1 - Contribution by each member
 * **Jayashree Sridhar:** 
-
+- Setup the outer and inner VM
+- Made changes in VMX code for incrementing exit reason for each VM exit for corresponding VM exit reason
+- Added conditional blocks in CPUID leaf 0x4FFFFFFE for valid and enabled VM exit reasons
+- Added conditional blocks in CPUID leaf 0x4FFFFFFE for exit reasons not enabled by kvm
+- Wrote test code for running inside inner VM which invokes the CPUID leaf function
 
 * **Praneetha Sripada:**  
-
+- Setup the outer and inner VM
+- Made changes in CPUID code for adding leaf function for 0x4FFFFFFE
+- Added conditional blocks in CPUID leaf 0x4FFFFFFE for exit reasons not defined in SDM
+- Added conditional blocks in CPUID leaf 0x4FFFFFFE for exit reasons not enabled by kvm
+- Checked and analyzed exit counts for vm exits from test code output
 
   
 
