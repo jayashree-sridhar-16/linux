@@ -40,6 +40,6 @@ insmod /lib/modules/5.9.0+/kernel/arch/x86/kvm/kvm-intel.ko ept=0
 - Nested paging mode (with ept) involves much less number of exits to handle paging operations as compared to shadow paging mode (without ept).
 
 ### What changed between the two runs (ept vs no-ept)?
-- With EPT mode, two layer page table is used for address translation. Guest VM does not exit for INVLPG instruction or for any operation on CR3/0/4 does not require VM exit, as Guest VM owns the page table
--In shadow paging mode, VMM has to emulate any operation on CR3/0/4 and INVLPG instruction, as Guest VM does not own the page table.
+*With EPT mode, two layer page table is used for address translation. Guest VM does not exit for INVLPG instruction or for any operation on CR3/0/4 does not require VM exit, as Guest VM owns the page table*
+*In shadow paging mode, VMM has to emulate any operation on CR3/0/4 and INVLPG instruction, as Guest VM does not own the page table.*
 
