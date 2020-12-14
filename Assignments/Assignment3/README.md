@@ -123,4 +123,4 @@ int main(int argc, char **argv) {
 -
 
 ### Of the exit types defined in the SDM, which are the most frequent? Least?
--We observed that exits pertaining to exit code **'29-MOV DR'** occured least number of times **2 times** while exits for exit code **'48-EPT violation'** were frequent with a frequency of **2,14,059**
+-We observed that exits pertaining to exit code **'29-MOV DR'** occured least number of times **2 times** while exits for exit code **'48-EPT violation'** were frequent with a frequency of **214059**
