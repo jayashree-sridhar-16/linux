@@ -204,10 +204,14 @@ We tested the count of VM exits for 3 scenarios - after inner VM boot up, openin
 - There is a spike in counts noticed in 3rd scenario for exit reason 32 and 49. 
 - Hence the frequency of exits varies for different exit reasons and according to different operations performed in inner VM.
 - A full VM boot entails total VM exit counts between 3040004, 4119437 and 5006001 as observed in assignment 2.
-
-
+- Individual exit reasons count for a full VM boot can be observed in these screenshots
+![1](./Screen%20Shot%202020-12-13%20at%206.31.41%20PM.png) 
+![2](./Screen%20Shot%202020-12-13%20at%206.31.54%20PM.png) 
 
 
 ### Of the exit types defined in the SDM, which are the most frequent? Least?
-- Exit reasons 48 EPT violation had the highest frequency of VM exits (6505288), followed by exit reasons 1, 28, 30, 32, 49.
-- Exit reasons such as 29, 31, 40, 54, had very low number of exits and some other had no vm exit occuring at all.
+- Exit reasons 48 EPT violation had the highest frequency of VM exits (6505288), followed by exit reasons 1(External interrupt), 28(Control register accesses), 30(IO instruction), 32(WRMSR), 49(EPT misconfiguration).
+- Exit reason 12 HTL occurs frequently but is seen to have gradual increase in the counts.
+- Exit reasons such as 29(MOV DR), 31(RDMSR), 40(PAUSE), 54(WBINVD), had very low number of exits and some other had no vm exit occuring at all.
+
+
