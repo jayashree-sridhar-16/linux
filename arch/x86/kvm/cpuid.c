@@ -1079,12 +1079,14 @@ EXPORT_SYMBOL_GPL(kvm_cpuid);
 
 
 /*
-* Assignment 2 code
+* Assignment 2 & 3 code
 */
 atomic_t number_of_exits = ATOMIC_INIT(0);
 atomic_long_t number_of_cycles = ATOMIC_INIT(0);
+atomic_t exitReasonArray[69] = {ATOMIC_INIT(0)}; //Array for SDM defined vm exit controls
 EXPORT_SYMBOL(number_of_exits);
 EXPORT_SYMBOL(number_of_cycles);
+EXPORT_SYMBOL(exitReasonArray);
 
 
 int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
@@ -1097,7 +1099,7 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 	eax = kvm_rax_read(vcpu);
 	ecx = kvm_rcx_read(vcpu);
 
-	if (eax == 0x4FFFFFFF) {
+	if (eax == 0x4FFFFFFF) { // Assignment 2
 		u32 total_exits = atomic_read(&number_of_exits);
 		u64 cycles = atomic_long_read(&number_of_cycles);
 		u32 max = 4294967295;
@@ -1112,6 +1114,39 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 		kvm_rcx_write(vcpu, low_bits);
 		kvm_rdx_write(vcpu, 0);
 		//return 
+	} else if (eax == 0x4FFFFFFE) { //Assignment 3
+		u32 numOfExits = atomic_read(&exitReasonArray[ecx]);
+		printk("Assignment 3: Total Exits = %u for exit reason= %u\n", numOfExits, ecx);
+		
+		if (ecx == 35 || ecx == 38 || ecx == 42 || ecx == 65 || ecx > 68 || ecx < 0) {
+			// Values not defined in SDM
+
+			kvm_rax_write(vcpu, 0);
+			kvm_rbx_write(vcpu, 0);
+			kvm_rcx_write(vcpu, 0);
+			kvm_rdx_write(vcpu, 0xFFFFFFFF);
+
+		} else if (ecx == 3 || ecx == 4 || ecx == 5 || ecx == 6 || ecx == 11 || ecx == 16 || ecx == 17 
+			|| ecx == 33 || ecx == 34 || ecx == 51 || ecx == 63 || ecx == 64 
+			|| ecx == 66 || ecx == 67 || ecx == 68) {
+
+			// Exits not enabled by kvm
+			kvm_rax_write(vcpu, 0);
+			kvm_rbx_write(vcpu, 0);
+			kvm_rcx_write(vcpu, 0);
+			kvm_rdx_write(vcpu, 0);
+
+		} else {
+			// Exits defined in SDM and enabled in the kvm
+
+			kvm_rax_write(vcpu, numOfExits);
+			kvm_rbx_write(vcpu, 0);
+			kvm_rcx_write(vcpu, 0);
+			kvm_rdx_write(vcpu, 0);
+		}
+
+		
+
 	} else {
 		
 		kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, false);

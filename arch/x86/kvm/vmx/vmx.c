@@ -5989,6 +5989,7 @@ void dump_vmcs(void)
 
 extern atomic_t number_of_exits;
 extern atomic_long_t number_of_cycles;
+extern atomic_t exitReasonArray[69];
 
 static uint64_t get_RDTSC_value(void) {
 	uint64_t msr;
@@ -6020,8 +6021,9 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 	
 
 	atomic_fetch_add(1, &number_of_exits);
+	atomic_fetch_add(1, &exitReasonArray[exit_reason]);
 
-	printk("Assignment 2: Exit Reason = %u, Total exits = %u\n", exit_reason, atomic_read(&number_of_exits));
+	//printk("Assignment 2: Exit Reason = %u, Total exits = %u\n", exit_reason, atomic_read(&number_of_exits));
 
 	start_time = get_RDTSC_value();
 
