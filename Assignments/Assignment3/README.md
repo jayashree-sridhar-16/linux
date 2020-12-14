@@ -20,7 +20,9 @@
 - Added conditional blocks in CPUID leaf 0x4FFFFFFE for exit reasons not enabled by kvm
 - Checked and analyzed exit counts for vm exits from test code output
 
-  
+## Files modified in linux repository for the assignment
+- https://github.com/jayashree-sridhar-16/linux/blob/master/arch/x86/kvm/cpuid.c
+- https://github.com/jayashree-sridhar-16/linux/blob/master/arch/x86/kvm/vmx/vmx.c
 
 ### Q2 - Steps
 - Please refer to the setup in https://github.com/jayashree-sridhar-16/linux/tree/master/Assignments/Assignment2#steps
