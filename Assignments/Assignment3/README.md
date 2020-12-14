@@ -197,4 +197,5 @@ We tested the count of VM exits for 3 scenarios - after inner VM boot up, openin
 
 
 ### Of the exit types defined in the SDM, which are the most frequent? Least?
--We observed that exits pertaining to exit code **'29-MOV DR'** occured least number of times **2 times** while exits for exit code **'48-EPT violation'** were frequent with a frequency of **214059**
+- Exit reasons 48 EPT violation had the highest frequency of VM exits (6505288), followed by exit reasons 1, 28, 30, 32, 49.
+- Exit reasons such as 29, 31, 40, 54, had very low number of exits and some other had no vm exit occuring at all.
